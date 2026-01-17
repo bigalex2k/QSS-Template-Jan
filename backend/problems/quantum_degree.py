@@ -48,8 +48,6 @@ def main(data):
     num_semesters, max_credits_per_semester, total_credits_needed, num_courses, \
         course_ids, course_credits, course_required, course_available = parseData(data)
     
-    print(num_semesters)
-    
     # Create the CQM model
     cqm = ConstrainedQuadraticModel()
     

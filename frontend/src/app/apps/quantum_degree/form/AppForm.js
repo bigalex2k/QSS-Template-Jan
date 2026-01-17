@@ -144,6 +144,20 @@ const AppForm = () => {
       });
   };
 
+  const getData = (constraintsGridRef, coursesGridRef) => {
+    // Clear previous output and deselect all rows
+    setOutputGrid([]);
+    constraintsGridRef.current.api.forEachNode((node) => node.setSelected(false));
+    coursesGridRef.current.api.forEachNode((node) => node.setSelected(false));
+    // Extract all row data from both grids
+    const rowDataConstraints = [];
+    const rowDataCourses = [];
+    constraintsGridRef.current.api.forEachNode((node) => rowDataConstraints.push(node.data));
+    coursesGridRef.current.api.forEachNode((node) => rowDataCourses.push(node.data));
+
+    return {"constraintsData": rowDataConstraints, "coursesData": rowDataCourses}
+  }
+
   return (
     <div>
       <h2>Degree Planner</h2>
@@ -151,10 +165,10 @@ const AppForm = () => {
       <h3 style={{ textAlign: "center" }}>Constraints</h3>
       <div style={{ height: `${grid_height_vh}vh`, width: "70%", margin: "0 auto" }}>
         <AgGridReact
-          ref={constraintsGridRef}
           rowData={constraintsGrid}
           columnDefs={constraintsGridColumns}
-          domLayout="fill"
+          ref={constraintsGridRef}
+          onCellValueChanged={setConstraintsGrid}
           columnSizingStrategy={sizeStrategy}
         />
       </div>
@@ -169,7 +183,6 @@ const AppForm = () => {
           ref={coursesGridRef}
           rowData={coursesGrid}
           columnDefs={coursesGridColumns}
-          domLayout="fill"
           columnSizingStrategy={sizeStrategy}
         />
       </div>
@@ -179,12 +192,15 @@ const AppForm = () => {
         <AgGridReact
           rowData={outputGrid}
           columnDefs={outputGridColumns}
-          domLayout="fill"
           columnSizingStrategy={sizeStrategy}
         />
       </div>
 
-      <SubmitButton onClick={handleSubmit} />
+      <SubmitButton 
+        problem_id="quantum_degree"
+        getData={() => getData(constraintsGridRef, coursesGridRef)}
+        sendData={displayOutput}
+      />
     </div>
   );
 };
