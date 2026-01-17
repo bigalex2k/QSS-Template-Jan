@@ -3,8 +3,6 @@ import numpy as np
 
 #TODO Create parseData
 def parseData(data):
-    print(data)
-
     num_semesters = data["constraintsData"][0]['semesters']
     max_credits_per_semester = data["constraintsData"][0]['credits_per_semester']
     total_credits_needed = data["constraintsData"][0]['total_credits']
@@ -65,13 +63,15 @@ def main(data):
     cqm.set_objective(objective)
     
     # Constraint 1: Each required course must be scheduled exactly once
+    """
     for c in range(num_courses):
         if course_required[c]:  # Only if course is required
             cqm.add_constraint(
                 sum(x[(c, s)] for s in range(num_semesters)) == 1,
                 label=f"required_course_{course_ids[c]}"
             )
-    
+
+    """
     # Constraint 2: Each optional course can be scheduled at most once
     for c in range(num_courses):
         if not course_required[c]:  # Only if course is optional
@@ -80,6 +80,7 @@ def main(data):
                 label=f"optional_course_{course_ids[c]}"
             )
     
+    """
     # Constraint 3: Courses can only be scheduled from their available semester
     for c in range(num_courses):
         for s in range(num_semesters):
@@ -101,5 +102,6 @@ def main(data):
         sum(course_credits[c] * x[(c, s)] for c in range(num_courses) for s in range(num_semesters)) >= total_credits_needed,
         label="total_credits_requirement"
     )
+    """
     
     return cqm

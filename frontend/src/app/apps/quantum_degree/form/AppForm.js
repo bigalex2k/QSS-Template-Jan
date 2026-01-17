@@ -161,10 +161,10 @@ const AppForm = () => {
       course_id: course.course_id,
       course_name: course.course_name,
       credits: course.credits,
-      semester_1: data[`${course.course_id}_1`] ?? 0,
-      semester_2: data[`${course.course_id}_2`] ?? 0,
-      semester_3: data[`${course.course_id}_3`] ?? 0,
-      semester_4: data[`${course.course_id}_4`] ?? 0,
+      semester_1: data[`${course.course_id}_0`] ?? 0,
+      semester_2: data[`${course.course_id}_1`] ?? 0,
+      semester_3: data[`${course.course_id}_2`] ?? 0,
+      semester_4: data[`${course.course_id}_3`] ?? 0,
     }));
     setOutputGrid(outputData);
   };
