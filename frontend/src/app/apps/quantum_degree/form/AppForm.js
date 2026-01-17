@@ -5,6 +5,8 @@ import React, { useState, useRef } from "react";
 import { AgGridReact } from "ag-grid-react";
 // Import AG Grid modules
 import { AllCommunityModule, ModuleRegistry } from "ag-grid-community";
+// Import preset courses database
+import { presetCourses } from "../presetCourses";
 // Import component styles
 import "../quantum_degree.css";
 // Import the submit button component
@@ -20,6 +22,7 @@ const AppForm = () => {
 
   // Create refs to access AG Grid API for data extraction
   const constraintsGridRef = useRef();
+  const completedCoursesGridRef = useRef();
   const coursesGridRef = useRef();
 
   // State for constraints: semesters available, credits per semester, total credits needed
@@ -27,10 +30,16 @@ const AppForm = () => {
     { "semesters": 4, "credits_per_semester": 15, "total_credits": 60 }
   ]);
 
+  // State for completed courses: courses already taken by the student
+  const [completedCoursesGrid, setCompletedCoursesGrid] = useState([
+    { "course_id": "CS180", "course_name": "Problem Solving and Object-Oriented Programming", "credits": 4, "semester": "1" },
+    { "course_id": "MATH165", "course_name": "Plane Analytical Geometry and Calculus I", "credits": 4, "semester": "1" }
+  ]);
+
   // State for courses: stores individual course information
   const [coursesGrid, setCoursesGrid] = useState([
-    { "course_id": "CS101", "course_name": "Intro to CS", "credits": 3, "required": 1, "semester_available": 1 },
-    { "course_id": "CS102", "course_name": "Data Structures", "credits": 4, "required": 1, "semester_available": 2 },
+    { "course_id": "CS180", "course_name": "Problem Solving and Object-Oriented Programming", "credits": 4, "required": 1, "semester_available": 1},
+    { "course_id": "CS193", "course_name": "Tools", "credits": 1 , "required": 0, "semester_available": 2}
   ]);
 
   // State for output: stores the optimized course schedule
@@ -41,6 +50,14 @@ const AppForm = () => {
     { "headerName": "Total Semesters", "field": "semesters", "editable": true },
     { "headerName": "Max Credits/Semester", "field": "credits_per_semester", "editable": true },
     { "headerName": "Total Credits Needed", "field": "total_credits", "editable": true },
+  ]);
+
+  // Define column structure for completed courses grid
+  const [completedCoursesGridColumns, setCompletedCoursesGridColumns] = useState([
+    { "headerName": "Course ID", "field": "course_id", "editable": true },
+    { "headerName": "Course Name", "field": "course_name", "editable": true },
+    { "headerName": "Credits", "field": "credits", "editable": true },
+    { "headerName": "Semester", "field": "semester", "editable": true },
   ]);
 
   // Define column structure for courses grid
@@ -68,23 +85,65 @@ const AppForm = () => {
     }
   ]);
 
-  // Handler to add a new course row
-  const addCourse = () => {
+
+  // Search panel state
+  const [searchQuery, setSearchQuery] = useState("");
+
+  // Filter preset courses based on search
+  const filteredCourses = presetCourses.filter(course =>
+    course.course_id.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    course.course_name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  // Add preset course to the grid
+  const addPresetCourse = (presetCourse) => {
     const newCourse = {
-      course_id: `CS${100 + coursesGrid.length}`,
-      course_name: "New Course",
-      credits: 3,
+      ...presetCourse,
       required: 0,
       semester_available: 1,
     };
     setCoursesGrid([...coursesGrid, newCourse]);
+    setSearchQuery("");
   };
 
-  // Handler to remove the last course row
-  const removeCourse = () => {
-    if (coursesGrid.length > 0) {
-      setCoursesGrid(coursesGrid.slice(0, -1));
+  // Context menu state
+  const [contextMenu, setContextMenu] = useState(null);
+  const [selectedCourseId, setSelectedCourseId] = useState(null);
+
+  // Handler for right-click context menu
+  const handleContextMenu = (e, courseId) => {
+    e.preventDefault();
+    setSelectedCourseId(courseId);
+    setContextMenu({
+      x: e.clientX,
+      y: e.clientY,
+    });
+  };
+
+  // Close context menu
+  const closeContextMenu = () => {
+    setContextMenu(null);
+    setSelectedCourseId(null);
+  };
+
+  // Handler for context menu options
+  const handleMenuOption = (option) => {
+    switch (option) {
+      case "duplicate":
+        const courseToDuplicate = coursesGrid.find(c => c.course_id === selectedCourseId);
+        const newCourse = {
+          ...courseToDuplicate,
+          course_id: `CS${100 + coursesGrid.length}`,
+        };
+        setCoursesGrid([...coursesGrid, newCourse]);
+        break;
+      case "delete":
+        setCoursesGrid(coursesGrid.filter(c => c.course_id !== selectedCourseId));
+        break;
+      default:
+        break;
     }
+    closeContextMenu();
   };
 
   // AG Grid sizing strategy
@@ -159,11 +218,11 @@ const AppForm = () => {
   }
 
   return (
-    <div>
-      <h2>Degree Planner</h2>
+    <div className="form-wrapper">
+      <h1 style={{ textAlign: "center" }}>Degree Planner</h1>
       
-      <h3 style={{ textAlign: "center" }}>Constraints</h3>
-      <div style={{ height: `${grid_height_vh}vh`, width: "70%", margin: "0 auto" }}>
+      <h3 style={{ textAlign: "center", marginTop: "4vh", marginBottom: "2vh"}}>Constraints</h3>
+      <div className="grid-container">
         <AgGridReact
           rowData={constraintsGrid}
           columnDefs={constraintsGridColumns}
@@ -173,22 +232,84 @@ const AppForm = () => {
         />
       </div>
 
-      <h3 style={{ textAlign: "center" }}>Courses</h3>
-      <div style={{ marginBottom: "10px", width: "70%", margin: "0 auto" }}>
-        <button onClick={addCourse} style={{ marginRight: "10px" }}>Add Course</button>
-        <button onClick={removeCourse}>Remove Course</button>
+      <h3 style={{ textAlign: "center", marginTop: "4vh", marginBottom: "2vh"}}>Completed Courses</h3>
+      <div className="grid-container">
+        <AgGridReact
+          rowData={completedCoursesGrid}
+          columnDefs={completedCoursesGridColumns}
+          ref={completedCoursesGridRef}
+          onCellValueChanged={setCompletedCoursesGrid}
+          columnSizingStrategy={sizeStrategy}
+        />
       </div>
-      <div style={{ height: `${grid_height_vh}vh`, width: "70%", margin: "0 auto" }}>
+
+      <h3 style={{ textAlign: "center", marginTop: "4vh", marginBottom: "2vh"}}>Courses</h3>
+      
+      {/* Search Panel */}
+      <div className="search-panel">
+        <input
+          type="text"
+          placeholder="Search courses by ID or name..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="search-input"
+        />
+        <div className="search-results">
+          {filteredCourses.length > 0 ? (
+            filteredCourses.map((course) => (
+              <div
+                key={course.course_id}
+                onClick={() => addPresetCourse(course)}
+                className="search-result-item"
+              >
+                <div>
+                  <strong>{course.course_id}</strong> - {course.course_name}
+                </div>
+                <div className="search-result-credits">{course.credits} credits</div>
+              </div>
+            ))
+          ) : (
+            <div className="search-no-results">No courses found</div>
+          )}
+        </div>
+      </div>
+      <div className="grid-container" onContextMenu={(e) => { e.preventDefault(); closeContextMenu(); }}>
         <AgGridReact
           ref={coursesGridRef}
           rowData={coursesGrid}
           columnDefs={coursesGridColumns}
           columnSizingStrategy={sizeStrategy}
+          onCellContextMenu={(params) => handleContextMenu(params.event, params.data.course_id)}
         />
       </div>
 
-      <h3 style={{ textAlign: "center" }}>Optimized Schedule</h3>
-      <div style={{ height: `${grid_height_vh}vh`, width: "70%", margin: "0 auto" }}>
+      {/* Context Menu */}
+      {contextMenu && (
+        <div
+          className="context-menu"
+          style={{
+            top: `${contextMenu.y}px`,
+            left: `${contextMenu.x}px`,
+          }}
+          onMouseLeave={closeContextMenu}
+        >
+          <div
+            onClick={() => handleMenuOption("duplicate")}
+            className="context-menu-item context-menu-item-duplicate"
+          >
+            Duplicate
+          </div>
+          <div
+            onClick={() => handleMenuOption("delete")}
+            className="context-menu-item context-menu-item-delete"
+          >
+            Delete
+          </div>
+        </div>
+      )}
+
+      <h3 style={{ textAlign: "center", marginTop: "4vh", marginBottom: "2vh"}}>Optimized Schedule</h3>
+      <div className="grid-container">
         <AgGridReact
           rowData={outputGrid}
           columnDefs={outputGridColumns}
@@ -196,11 +317,13 @@ const AppForm = () => {
         />
       </div>
 
-      <SubmitButton 
-        problem_id="quantum_degree"
-        getData={() => getData(constraintsGridRef, coursesGridRef)}
-        sendData={displayOutput}
-      />
+      <div className="submit-button-wrapper">
+        <SubmitButton 
+          problem_id="quantum_degree"
+          getData={() => getData(constraintsGridRef, coursesGridRef)}
+          sendData={displayOutput}
+        />
+      </div>
     </div>
   );
 };
