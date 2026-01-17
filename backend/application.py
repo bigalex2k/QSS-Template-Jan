@@ -36,7 +36,11 @@ def run_app():
             return jsonify(solved)
         return jsonify({"error": "Function main not found for " + pid + "!"})
     except Exception as e:
-        return jsonify({"error": "An exception occurred: " + repr(e)})
+        app.logger.exception("Backend error in /run_app")
+        return jsonify({
+            "error": str(e),
+            "type": type(e).__name__
+        }), 500
 
 if __name__ == '__main__':
-   app.run(host='localhost', port=8080)
+   app.run(host='localhost', port=8080, debug=True)

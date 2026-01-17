@@ -155,6 +155,8 @@ const AppForm = () => {
   // Process the solver results and format for display
   const displayOutput = (data) => {
     // Format the solution data for the output grid
+    console.log(data);
+
     const outputData = coursesGrid.map(course => ({
       course_id: course.course_id,
       course_name: course.course_name,

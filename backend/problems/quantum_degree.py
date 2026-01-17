@@ -1,31 +1,26 @@
 from dimod import ConstrainedQuadraticModel, Binary
 import numpy as np
 
-
 #TODO Create parseData
 def parseData(data):
-    num_semesters = data["Constraints"][0]['Total Semesters']
-    max_credits_per_semester = data["Constraints"][0]['Max Credits/Semester']
-    total_credits_needed = data["Contraints"][0]['Total Credits Needed']
+    print(data)
 
-    num_courses = len(data["Courses"])
+    num_semesters = data["constraintsData"][0]['semesters']
+    max_credits_per_semester = data["constraintsData"][0]['credits_per_semester']
+    total_credits_needed = data["constraintsData"][0]['total_credits']
 
-    course_ids = np.zeros((num_courses))
+    num_courses = len(data["coursesData"])
+
+    course_ids = []
     course_credits = np.zeros((num_courses))
     course_required = np.zeros((num_courses))
     course_available = np.zeros((num_courses))
 
     for i in range(num_courses):
-        course_ids[i] = data["Courses"][i]['Course ID']
-
-    for i in range(num_courses):
-        course_credits[i] = data["Courses"][i]['Credits']
-    
-    for i in range(num_courses):
-        course_required[i] = data["Courses"][i]['Required?']
-    
-    for i in range(num_courses):
-        course_available[i] = data["Courses"][i]['Available From Semester']
+        course_ids.append(data["coursesData"][i]['course_id'])
+        course_credits[i] = data["coursesData"][i]['credits']
+        course_required[i] = data["coursesData"][i]['required']
+        course_available[i] = data["coursesData"][i]['semester_available']
     
     return (num_semesters, max_credits_per_semester, total_credits_needed, 
             num_courses, course_ids, course_credits, course_required, course_available)
