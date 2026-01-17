@@ -148,8 +148,8 @@ const AppForm = () => {
     <div>
       <h2>Degree Planner</h2>
       
-      <h3>Constraints</h3>
-      <div style={{ height: `${grid_height_vh}vh` }}>
+      <h3 style={{ textAlign: "center" }}>Constraints</h3>
+      <div style={{ height: `${grid_height_vh}vh`, width: "70%", margin: "0 auto" }}>
         <AgGridReact
           ref={constraintsGridRef}
           rowData={constraintsGrid}
@@ -159,12 +159,12 @@ const AppForm = () => {
         />
       </div>
 
-      <h3>Courses</h3>
-      <div style={{ marginBottom: "10px" }}>
+      <h3 style={{ textAlign: "center" }}>Courses</h3>
+      <div style={{ marginBottom: "10px", width: "70%", margin: "0 auto" }}>
         <button onClick={addCourse} style={{ marginRight: "10px" }}>Add Course</button>
         <button onClick={removeCourse}>Remove Course</button>
       </div>
-      <div style={{ height: `${grid_height_vh}vh` }}>
+      <div style={{ height: `${grid_height_vh}vh`, width: "70%", margin: "0 auto" }}>
         <AgGridReact
           ref={coursesGridRef}
           rowData={coursesGrid}
@@ -174,8 +174,8 @@ const AppForm = () => {
         />
       </div>
 
-      <h3>Optimized Schedule</h3>
-      <div style={{ height: `${grid_height_vh}vh` }}>
+      <h3 style={{ textAlign: "center" }}>Optimized Schedule</h3>
+      <div style={{ height: `${grid_height_vh}vh`, width: "70%", margin: "0 auto" }}>
         <AgGridReact
           rowData={outputGrid}
           columnDefs={outputGridColumns}
