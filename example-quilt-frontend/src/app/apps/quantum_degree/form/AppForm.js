@@ -5,6 +5,9 @@ import React, { useState, useRef } from "react";
 import { AgGridReact } from "ag-grid-react";
 // Import AG Grid modules
 import { AllCommunityModule, ModuleRegistry } from "ag-grid-community";
+// Import AG Grid styles
+import "ag-grid-community/styles/ag-grid.css";
+import "ag-grid-community/styles/ag-theme-quartz.css";
 // Import component styles
 import "../quantum_degree.css";
 // Import the submit button component
@@ -90,7 +93,7 @@ const AppForm = () => {
       <h2>Degree Planner</h2>
       
       <h3>Constraints</h3>
-      <div style={{ height: "40vh" }}>
+      <div style={{ height: "80vh", width: "70%", margin: "0 auto" }}>
         <AgGridReact
           ref={constraintsGridRef}
           rowData={constraintsGrid}
@@ -98,9 +101,9 @@ const AppForm = () => {
           domLayout="fill"
         />
       </div>
-
+      {/*
       <h3>Courses</h3>
-      <div style={{ height: "40vh" }}>
+      <div className="ag-theme-quartz" style={{ height: "80%", width: "70%", margin: "0 auto" }}>
         <AgGridReact
           ref={coursesGridRef}
           rowData={coursesGrid}
@@ -110,14 +113,14 @@ const AppForm = () => {
       </div>
 
       <h3>Results</h3>
-      <div style={{ height: "40vh" }}>
+      <div className="ag-theme-quartz" style={{ height: "80%", width: "70%", margin: "0 auto" }}>
         <AgGridReact
           rowData={outputGrid}
           columnDefs={outputGridColumns}
           domLayout="fill"
         />
       </div>
-
+      */}
       <SubmitButton onClick={handleSubmit} />
     </div>
   );
