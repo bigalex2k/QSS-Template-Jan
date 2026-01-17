@@ -58,12 +58,11 @@ def main(data):
     for c in range(num_courses):
         for s in range(num_semesters):
             # Add to objective: negative because we want to maximize scheduled credits
-            objective -= course_credits[c] * x[(c, s)]
+            objective -= course_credits[c] * (num_semesters - s) * x[(c, s)]
     
     cqm.set_objective(objective)
     
     # Constraint 1: Each required course must be scheduled exactly once
-    """
     for c in range(num_courses):
         if course_required[c]:  # Only if course is required
             cqm.add_constraint(
@@ -71,7 +70,6 @@ def main(data):
                 label=f"required_course_{course_ids[c]}"
             )
 
-    """
     # Constraint 2: Each optional course can be scheduled at most once
     for c in range(num_courses):
         if not course_required[c]:  # Only if course is optional
@@ -80,11 +78,11 @@ def main(data):
                 label=f"optional_course_{course_ids[c]}"
             )
     
-    """
+    
     # Constraint 3: Courses can only be scheduled from their available semester
     for c in range(num_courses):
         for s in range(num_semesters):
-            if s < course_available[c]:  # Course not yet available
+            if s + 1 < course_available[c]:  # Course not yet available
                 cqm.add_constraint(
                     x[(c, s)] == 0,
                     label=f"availability_{course_ids[c]}_semester_{s}"
@@ -96,7 +94,7 @@ def main(data):
             sum(course_credits[c] * x[(c, s)] for c in range(num_courses)) <= max_credits_per_semester,
             label=f"max_credits_semester_{s}"
         )
-    
+    """
     # Constraint 5: Total credits scheduled must meet requirement
     cqm.add_constraint(
         sum(course_credits[c] * x[(c, s)] for c in range(num_courses) for s in range(num_semesters)) >= total_credits_needed,
