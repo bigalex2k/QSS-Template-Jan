@@ -1,7 +1,6 @@
 from dimod import ConstrainedQuadraticModel, Binary
 import numpy as np
 
-#TODO Create parseData
 def parseData(data):
     num_semesters = data["constraintsData"][0]['semesters']
     max_credits_per_semester = data["constraintsData"][0]['credits_per_semester']
@@ -52,29 +51,40 @@ def main(data):
             var_name = f"{course_ids[c]}_{s}"
             x[(c, s)] = Binary(var_name)
     
-    # Objective: Minimize total idle credits across semesters (encourage full schedules)
-    # This is done by maximizing scheduled credits, which in minimization becomes negative
+    # Objective: Prefer earlier semesters and discourage late scheduling relative to availability
+    # Earlier preference: stronger cubic weighting; Late penalty: linear in (scheduled semester - available semester)
+    EARLY_EXPONENT = 4
+    LATE_WEIGHT = 50  # stronger penalty for later placement
+
     objective = 0
     for c in range(num_courses):
+        avail = int(course_available[c])
         for s in range(num_semesters):
-            # Add to objective: negative because we want to maximize scheduled credits
-            objective -= course_credits[c] * (num_semesters - s) * x[(c, s)]
+            # Strong preference for earlier semesters
+            early_weight = (num_semesters - s) ** EARLY_EXPONENT
+            objective -= course_credits[c] * early_weight * x[(c, s)]
+
+            # Soft penalty for scheduling later than first availability
+            lateness = max(0, (s + 1) - avail)
+            objective += LATE_WEIGHT * course_credits[c] * lateness * x[(c, s)]
     
     cqm.set_objective(objective)
     
     # Constraint 1: Each required course must be scheduled exactly once
+    # Only in semesters where the course is available (s+1 >= course_available[c])
     for c in range(num_courses):
         if course_required[c]:  # Only if course is required
             cqm.add_constraint(
-                sum(x[(c, s)] for s in range(num_semesters)) == 1,
+                sum(x[(c, s)] for s in range(num_semesters) if s + 1 >= course_available[c]) == 1,
                 label=f"required_course_{course_ids[c]}"
             )
 
     # Constraint 2: Each optional course can be scheduled at most once
+    # Only in semesters where the course is available (s+1 >= course_available[c])
     for c in range(num_courses):
         if not course_required[c]:  # Only if course is optional
             cqm.add_constraint(
-                sum(x[(c, s)] for s in range(num_semesters)) <= 1,
+                sum(x[(c, s)] for s in range(num_semesters) if s + 1 >= course_available[c]) <= 1,
                 label=f"optional_course_{course_ids[c]}"
             )
     
@@ -94,12 +104,15 @@ def main(data):
             sum(course_credits[c] * x[(c, s)] for c in range(num_courses)) <= max_credits_per_semester,
             label=f"max_credits_semester_{s}"
         )
-    """
+    
     # Constraint 5: Total credits scheduled must meet requirement
+    # Use the minimum of total_credits_needed and available credits
+    total_available_credits = sum(course_credits)
+    required_credits = min(total_credits_needed, total_available_credits)
+    
     cqm.add_constraint(
-        sum(course_credits[c] * x[(c, s)] for c in range(num_courses) for s in range(num_semesters)) >= total_credits_needed,
+        sum(course_credits[c] * x[(c, s)] for c in range(num_courses) for s in range(num_semesters)) >= required_credits,
         label="total_credits_requirement"
     )
-    """
     
     return cqm

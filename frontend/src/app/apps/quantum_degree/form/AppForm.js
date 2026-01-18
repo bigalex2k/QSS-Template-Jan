@@ -39,7 +39,7 @@ const AppForm = () => {
   // State for courses: stores individual course information
   const [coursesGrid, setCoursesGrid] = useState([
     { "course_id": "CS180", "course_name": "Problem Solving and Object-Oriented Programming", "credits": 4, "required": 1, "semester_available": 1},
-    { "course_id": "CS193", "course_name": "Tools", "credits": 1 , "required": 0, "semester_available": 2}
+    { "course_id": "CS193", "course_name": "Tools", "credits": 1 , "required": 0, "semester_available": 1}
   ]);
 
   // State for output: stores the optimized course schedule
